@@ -1,0 +1,93 @@
+{include file="public/head" /}
+<style>form{margin: 2% 10% 10% 2%}</style>
+</head>
+<body class="layui-layout-body">
+<form class="layui-form" action="" lay-filter="form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">图书编号</label>
+        <div class="layui-input-block">
+            <input type="text" name="id" lay-verify="required" autocomplete="off"
+                   class="layui-input" readonly>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*书名</label>
+        <div class="layui-input-block">
+            <input type="text" name="name" lay-verify="required" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*图书类别</label>
+        <div class="layui-input-block">
+            <select name="type_id" id="type_id" lay-verify="required" lay-search="">
+                <option value="">请选择或搜索类别</option>
+                {volist name="typeList" id="vo"}
+                <option value="{$vo.id}">{$vo.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*价格(元)</label>
+        <div class="layui-input-block">
+            <input type="text" name="price" lay-verify="required" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*出版社</label>
+        <div class="layui-input-block">
+            <input type="text" name="publisher" lay-verify="required" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*所在位置</label>
+        <div class="layui-input-block">
+            <input type="text" name="location" lay-verify="required" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <textarea name="description" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item" style="text-align: center">
+        <a class="layui-btn" lay-submit="" lay-filter="save">保存</a>
+    </div>
+</form>
+</body>
+<script>
+    //表单提交
+    layui.use('form', function () {
+        var form = layui.form,layer = layui.layer;
+        //表单初始赋值
+        form.val('form', {
+            "id": '{$id}'
+            ,"name": '{$name}'
+            ,"price": '{$price}'
+            ,"type_id": '{$type_id}'
+            ,"publisher": '{$publisher}'
+            ,"location": '{$location}'
+            ,"description": '{$description}'
+        });
+        //表单提交
+        form.on('submit(save)', function (data) {
+            $.post("{:url('admin/Book/editPost')}",{data:data.field},function(res){
+                if(res.code==0){
+                    layer.msg(res.msg, {time: 2000, icon:5});
+                }else{
+                    layer.msg(res.msg, {time: 1500, icon:6});
+                    setTimeout(function () {
+                        parent.location.href = "{:url('admin/Book/index')}";
+                    },1500)
+                }
+            },"json");
+        });
+    });
+</script>
+</body>
+</html>

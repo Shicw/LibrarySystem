@@ -1,0 +1,96 @@
+{include file="public/head" /}
+<style>form{margin: 2% 10% 10% 2%}</style>
+</head>
+<body class="layui-layout-body">
+<form class="layui-form" action="" lay-filter="form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">用户编号</label>
+        <div class="layui-input-block">
+            <input type="text" name="id" lay-verify="required" autocomplete="off"
+                   class="layui-input" readonly>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*姓名</label>
+        <div class="layui-input-block">
+            <input type="text" name="name" lay-verify="required" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*性别</label>
+        <div class="layui-input-block">
+            <input type="radio" name="sex" value="1" title="男&nbsp;&nbsp;&nbsp;&nbsp;">
+            <input type="radio" name="sex" value="2" title="女">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*类型</label>
+        <div class="layui-input-block">
+            <input type="radio" name="type" value="1" title="学生">
+            <input type="radio" name="type" value="2" title="教师">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*手机</label>
+        <div class="layui-input-block">
+            <input type="text" name="mobile" lay-verify="required" autocomplete="off"
+                   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">*专业班级</label>
+        <div class="layui-input-inline">
+            <select name="major_id" id="major_id" lay-verify="required" lay-search="" lay-filter="major_id">
+                <option value="">请选择或搜索专业</option>
+                {volist name="majorList" id="vo"}
+                <option value="{$vo.id}">{$vo.name}</option>
+                {/volist}
+            </select>
+        </div>
+        <div class="layui-input-inline">
+            <select name="class_id" id="class_id">
+                <option value="" hidden>请选班级</option>
+                {volist name="classList" id="vo"}
+                <option value="{$vo.id}">{$vo.name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item" style="text-align: center">
+        <a class="layui-btn" lay-submit="" lay-filter="save">保存</a>
+    </div>
+</form>
+</body>
+<script>
+    //表单提交
+    layui.use('form', function () {
+        var form = layui.form,layer = layui.layer;
+        //表单初始赋值
+        form.val('form', {
+            "id": '{$id}'
+            ,"name": '{$name}'
+            ,"sex": '{$sex}'
+            ,"type": '{$type}'
+            ,"mobile": '{$mobile}'
+            ,"major_id": '{$major_id}'
+            ,"class_id": '{$class_id}'
+
+        });
+        //表单提交
+        form.on('submit(save)', function (data) {
+            $.post("{:url('admin/User/editPost')}",{data:data.field},function(res){
+                if(res.code==0){
+                    layer.msg(res.msg, {time: 2000, icon:5});
+                }else{
+                    layer.msg(res.msg, {time: 1500, icon:6});
+                    setTimeout(function () {
+                        parent.location.href = "{:url('admin/User/index')}";
+                    },1500)
+                }
+            },"json");
+        });
+    });
+</script>
+</body>
+</html>

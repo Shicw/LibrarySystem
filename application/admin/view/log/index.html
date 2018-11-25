@@ -1,0 +1,33 @@
+{include file="public/head" /}
+</head>
+<body class="layui-layout-body">
+<div class="layui-tab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">系统日志</li>
+    </ul>
+</div>
+<div class="layui-tab-content">
+    <div class="layui-tab-item layui-show">
+        <table id="table" lay-filter="log"></table>
+    </div>
+</div>
+</body>
+<script>
+    layui.use('table', function(){
+        var table = layui.table;
+        table.render({
+            elem: '#table'
+            ,height: 450
+            ,url: '/admin/Log/getLogs'
+            ,page: true
+            ,cols: [[
+                {field: 'id', title: 'ID', width:80, fixed: 'left'}
+                ,{field: 'action', title: '操作'}
+                ,{field: 'user_id', title: '操作者id'}
+                ,{field: 'create_time', title: '操作时间'}
+            ]]
+        });
+    });
+</script>
+</body>
+</html>

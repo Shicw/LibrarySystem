@@ -1,0 +1,253 @@
+{include file="public/head" /}
+</head>
+<body class="layui-layout-body">
+<div class="layui-tab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">图书借阅记录</li>
+        <li>图书出借</li>
+        <li>图书归还</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-inline">
+                <input type="text" placeholder="按编号,姓名,书名" class="layui-input" id="keyword">
+            </div>
+            <button class="layui-btn" id="search">搜索</button>
+            <button class="layui-btn layui-btn-danger" id="reset">重置</button>
+
+            <table id="table" lay-filter="table"></table>
+            <script type="text/html" id="operation">
+                {{#  if(d.renew_times > 0){ }}
+                <a class="layui-btn layui-btn-xs" lay-event="renew">续借</a>
+                {{#  } }}
+            </script>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-md5">
+                    <form class="layui-form" action="" id="borrow_form">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*图书编号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="book_id" lay-verify="required" autocomplete="off"
+                                       class="layui-input" onblur="showBookName(this)">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">书名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="book_name" autocomplete="off"
+                                       class="layui-input" readonly placeholder="输入图书编号后会自动显示">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*用户编号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="user_id" lay-verify="required" autocomplete="off"
+                                       class="layui-input" onblur="showUserName(this)">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">姓名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="user_name" autocomplete="off"
+                                       class="layui-input" readonly placeholder="输入用户编号后会自动显示">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="text-align: center">
+                            <a class="layui-btn" lay-submit="" lay-filter="borrow">提交</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-md5">
+                    <form class="layui-form" action="" id="return_form">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*图书编号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="book_id" lay-verify="required" autocomplete="off"
+                                       class="layui-input" onblur="showBookName(this)">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">书名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="book_name" autocomplete="off"
+                                       class="layui-input" readonly placeholder="输入图书编号后会自动显示">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*用户编号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="user_id" lay-verify="required" autocomplete="off"
+                                       class="layui-input" onblur="showUserName(this)">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">姓名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="user_name" autocomplete="off"
+                                       class="layui-input" readonly placeholder="输入用户编号后会自动显示">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="text-align: center">
+                            <a class="layui-btn" lay-submit="" lay-filter="return">提交</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function(){
+        $(".layui-tab-title").find("li").on("click",function(){
+            $("input").val('');
+        });
+    });
+    layui.use(['element','table','form'], function(){
+        var table = layui.table,layer = layui.layer;
+        var form = layui.form;
+        //表格加载
+        table.render({
+            elem: '#table'
+            ,height: 450
+            ,url: '/admin/book_borrow/getList'
+            ,page: true
+            ,cols: [[
+                {field: 'id', title: 'ID', sort: true, fixed: 'left', width:60}
+                ,{field: 'book_id', title: '图书编号', width:100}
+                ,{field: 'book_name', title: '书名', width:200}
+                ,{field: 'user_id', title: '用户编号', width:110}
+                ,{field: 'user_name', title: '姓名', width:90}
+                ,{field: 'begin_time', title: '出借时间', width:160}
+                ,{field: 'end_time', title: '需归还时间', width:160}
+                ,{field: 'real_end_time', title: '实际归还时间', width:160}
+                ,{field: 'renew_times', title: '剩余续借次数', width:120}
+                ,{field: 'overdue_money', title: '超期费用(元)', width:110}
+                ,{fixed: 'right', title:'操作', toolbar: '#operation', width:100}
+            ]],
+            id:'table'
+        })
+        //监听表格操作按钮
+        table.on('tool(table)', function(obj) {
+            var data = obj.data;
+            var id = data.id;//操作的记录id
+            if(obj.event=='renew'){
+                layer.confirm('确认要续借吗?', function (index) {
+                    if(data.renew==0){
+                        layer.msg('无剩余续借次数', {time: 2000, icon: 5});
+                        return false;
+                    }
+                    $.post("{:url('admin/BookBorrow/renew')}", {id: id}, function (res) {
+                        if (res.code == 0) {
+                            layer.msg(res.msg, {time: 2000, icon: 5});
+                        } else {
+                            table.reload('table', {
+                                url: "/admin/book_borrow/getList"
+                                ,where: {}
+                            });
+                            layer.msg(res.msg, {time: 1500, icon: 6});
+                        }
+                    }, "json");
+                });
+            }
+        });
+        //监听办理借阅表单提交
+        form.on('submit(borrow)', function (data) {
+            if(data.field.book_name=='' || data.field.book_name==''){
+                layer.msg('请输入正确的图书编号和用户编号', {time: 2000, icon:5});
+                return false;
+            }
+            $.post("{:url('admin/book_borrow/addPost')}",{data:data.field},function(res){
+                if(res.code==0){
+                    layer.msg(res.msg, {time: 2000, icon:5});
+                }else{
+                    layer.msg(res.msg, {time: 1500, icon:6});
+                    $("input").val('');//清空输入框
+                    table.reload('table', {
+                        url: '/admin/book_borrow/getList'
+                    });
+                }
+            },"json");
+        });
+        //监听办理归还表单提交
+        form.on('submit(return)', function (data) {
+            if(data.field.book_name=='' || data.field.book_name==''){
+                layer.msg('请输入正确的图书编号和用户编号', {time: 2000, icon:5});
+                return false;
+            }
+            //先查询一下超期情况
+            $.post("{:url('admin/book_borrow/calcOverdue')}",{bookId:data.field.book_id,userId:data.field.user_id},function(res){
+                //console.log(res);
+                layer.confirm('借阅超期天数:'+res.overdue_days+'天;超期费用:'+res.overdue_money+'元', {
+                    btn: ['提交','取消'] //按钮
+                }, function(){
+                    $.post("{:url('admin/book_borrow/returnPost')}",{data:data.field},function(res){
+                        if(res.code==0){
+                            layer.msg(res.msg, {time: 2000, icon:5});
+                        }else{
+                            layer.msg(res.msg, {time: 1500, icon:6});
+                            $("input").val('');//清空输入框
+                            table.reload('table', {
+                                url: '/admin/book_borrow/getList'
+                            });
+                        }
+                    },"json");
+                }, function(){});
+            });
+        });
+        //任务名搜索
+        $("#search").click(function () {
+            //获取搜索的关键字
+            var keyword = $("#keyword").val();
+            if(keyword==''){return false;}
+            var url = "/admin/book_borrow/getList?keyword="+keyword;
+            table.reload('table', {
+                url: url
+                ,where: {}
+            });
+        });
+        //重置搜索
+        $("#reset").click(function () {
+            $("#keyword").val('');
+            //表格重载
+            table.reload('table', {
+                url: "/admin/book_borrow/getList?keyword="
+                ,where: {}
+            });
+        });
+    });
+    //根据输入的图书编号加载书名
+    function showBookName(self) {
+        var bookId = self.value;
+        if(bookId=='') return false;
+        $.post("{:url('admin/book/showBookName')}",{bookId:bookId},function(res){
+            if(res.code==0){
+                layer.msg(res.msg, {time: 2000, icon:5});
+                $("input[name='book_name']").val('');
+            }else{
+                $("input[name='book_name']").val(res.data);
+            }
+        });
+    }
+    //根据输入的用户编号加载姓名
+    function showUserName(self) {
+        var userId = self.value;
+        if(userId=='') return false;
+        $.post("{:url('admin/user/showUserName')}",{userId:userId},function(res){
+            if(res.code==0){
+                $("input[name='user_name']").val('');
+                layer.msg(res.msg, {time: 2000, icon:5});
+            }else{
+                $("input[name='user_name']").val(res.data);
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

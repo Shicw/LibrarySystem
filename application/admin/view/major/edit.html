@@ -1,0 +1,51 @@
+{include file="public/head" /}
+<style>form{margin: 10% 10% 10% 5%}</style>
+</head>
+<body class="layui-layout-body">
+<form class="layui-form" action="" lay-filter="form">
+    <div class="layui-form-item">
+        <label class="layui-form-label">*专业名称</label>
+        <div class="layui-input-block">
+            <input type="text" name="name" lay-verify="required" autocomplete="off"
+                   class="layui-input" style="width: 65%">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">备注</label>
+        <div class="layui-input-block">
+            <input type="text" name="description" autocomplete="off"
+                   class="layui-input" style="width: 65%">
+        </div>
+    </div>
+    <div class="layui-form-item" style="text-align: center">
+        <input type="hidden" name="id" value="{$id}">
+        <a class="layui-btn" lay-submit="" lay-filter="save">保存</a>
+    </div>
+</form>
+</body>
+<script>
+    //表单提交
+    layui.use('form', function () {
+        var form = layui.form,layer = layui.layer;
+        //表单初始赋值
+        form.val('form', {
+            "name": '{$name}'
+            ,"description": '{$description}'
+        });
+        //表单提交
+        form.on('submit(save)', function (data) {
+            $.post("{:url('admin/Major/editPost')}",{data:data.field},function(res){
+                if(res.code==0){
+                    layer.msg(res.msg, {time: 2000, icon:5});
+                }else{
+                    layer.msg(res.msg, {time: 1500, icon:6});
+                    setTimeout(function () {
+                        parent.location.href = "{:url('admin/Major/index')}";
+                    },1500)
+                }
+            },"json");
+        });
+    });
+</script>
+</body>
+</html>

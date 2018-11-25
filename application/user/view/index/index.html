@@ -1,0 +1,99 @@
+{include file="public/head" /}
+</head>
+<body class="layui-layout-body">
+<div class="layui-row">
+    <div class="layui-col-xs12">
+        <ul class="layui-nav" lay-filter="">
+            <li class="layui-nav-item">欢迎您,{$name}</li>
+            <li class="layui-nav-item" style="float: right">
+                <a href="javascript:;">操作</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="/user/Index/index">借阅中</a></dd>
+                    <dd><a href="/user/Index/history">历史借阅</a></dd>
+                    <dd><a href="/user/Index/changePassword">修改密码</a></dd>
+                    <dd><a href="javascript:;" id="loginOut">注销</a></dd>
+                </dl>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="layui-layout layui-col-xs12" style="margin-top: 5%">
+    <div class="layui-tab">
+        <ul class="layui-tab-title">
+            <li class="layui-this">借阅中的图书</li>
+        </ul>
+    </div>
+    <table id="table" lay-filter="table" style="margin-top: 10%"></table>
+    <script type="text/html" id="operation">
+        {{#  if(d.renew_times > 0){ }}
+        <a class="layui-btn layui-btn-xs" lay-event="renew">续借</a>
+        {{#  } }}
+    </script>
+</div>
+<script>
+    layui.use(['element','table'], function(){
+        var table = layui.table,layer = layui.layer;
+        //表格加载
+        table.render({
+            elem: '#table'
+            ,height: 450
+            ,url: '/user/index/getBorrowingList'
+            ,page: false
+            ,cols: [[
+                {field: 'book_name', title: '书名', fixed: 'left'}
+                ,{field: 'begin_time', title: '借阅时间'}
+                ,{field: 'end_time', title: '需归还时间'}
+                ,{title:'操作', toolbar: '#operation', width:70}
+            ]],
+            id:'table'
+        })
+        //监听表格操作按钮
+        table.on('tool(table)', function(obj) {
+            var data = obj.data;
+            var id = data.id;//操作的记录id
+            if(obj.event=='renew'){
+                layer.confirm('确认要续借吗?', function (index) {
+                    if(data.renew==0){
+                        layer.msg('无剩余续借次数', {time: 2000, icon: 5});
+                        return false;
+                    }
+                    $.post("{:url('user/Index/renew')}", {id: id}, function (res) {
+                        if (res.code == 0) {
+                            layer.msg(res.msg, {time: 2000, icon: 5});
+                        } else {
+                            table.reload('table', {
+                                url: "/user/index/getBorrowingList"
+                                ,where: {}
+                            });
+                            layer.msg(res.msg, {time: 1500, icon: 6});
+                        }
+                    }, "json");
+                });
+            }
+        });
+    });
+    $(function(){
+        //注销按钮监听点击事件
+        $("#loginOut").on("click",function(){
+            $.ajax({
+                url:"{:url('user/Login/loginOut')}",
+                type:"get",
+                success:function (res) {
+                    console.log(res);
+                    if(res.code==1){
+                        layui.use('layer', function(){
+                            var layer = layui.layer;
+                            layer.msg('注销成功',{time: 1000});
+                            setTimeout(function () {
+                                window.location.href = '/user/Login/index';
+                            },1000);
+                        });
+                    }
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

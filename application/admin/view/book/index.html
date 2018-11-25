@@ -1,0 +1,177 @@
+{include file="public/head" /}
+</head>
+<body class="layui-layout-body">
+<div class="layui-tab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">图书列表</li>
+        <li>添加图书</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-inline">
+                <input type="text" placeholder="按书名,编号,出版社搜索" class="layui-input" id="keyword">
+            </div>
+            <button class="layui-btn" id="search">搜索</button>
+            <button class="layui-btn layui-btn-danger" id="reset">重置</button>
+
+            <table id="table" lay-filter="table"></table>
+            <script type="text/html" id="operation">
+                <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+            </script>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-md5">
+                    <form class="layui-form" action="">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*图书编号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="id" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*书名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="name" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*图书类别</label>
+                            <div class="layui-input-block">
+                                <select name="type_id" id="type_id" lay-verify="required" lay-search="">
+                                    <option value="">请选择或搜索类别</option>
+                                    {volist name="typeList" id="vo"}
+                                    <option value="{$vo.id}">{$vo.name}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*价格(元)</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="price" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*出版社</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="publisher" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*所在位置</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="location" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item layui-form-text">
+                            <label class="layui-form-label">备注</label>
+                            <div class="layui-input-block">
+                                <textarea name="description" class="layui-textarea"></textarea>
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="text-align: center">
+                            <a class="layui-btn" lay-submit="" lay-filter="submit">提交</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['element','table','form'], function(){
+        var table = layui.table,layer = layui.layer;
+        var form = layui.form;
+        //表格加载
+        table.render({
+            elem: '#table'
+            ,height: 450
+            ,url: '/admin/Book/getList'
+            ,page: true
+            ,cols: [[
+                {field: 'id', title: '图书编号', sort: true, fixed: 'left', width:110}
+                ,{field: 'name', title: '书名', width:200}
+                ,{field: 'type', title: '图书类别', width:120}
+                ,{field: 'price', title: '价格(元)', width:90}
+                ,{field: 'publisher', title: '出版社', width:150}
+                ,{field: 'status', title: '状态', width:90, templet: function(d){
+                    return d.status==0 ? '可借阅' : (d.status==1 ? '已借出' : '暂停借阅');
+                }}
+                ,{field: 'location', title: '所在位置', width:100}
+                ,{field: 'create_time', title: '添加时间', width:170}
+                ,{field: 'description', title: '备注', width:150}
+                ,{fixed: 'right', title:'操作', toolbar: '#operation', width:160}
+            ]]
+        });
+        //监听表格操作按钮
+        table.on('tool(table)', function(obj){
+            var data = obj.data;
+            var id = data.id;//操作的记录id
+            //console.log(obj);
+            if(obj.event === 'del'){
+                layer.confirm('确认要删除吗?', function(index){
+                    obj.del();//前端删除
+                    $.post("{:url('admin/Book/delete')}",{id:id},function(res){
+                        if(res.code==0){
+                            layer.msg(res.msg, {time: 2000, icon:5});
+                        }else{
+                            layer.msg(res.msg, {time: 1500, icon:6});
+                        }
+                    },"json");
+                });
+            } else if(obj.event === 'edit'){
+                layer.open({
+                    type: 2,
+                    title: '修改图书信息',
+                    shadeClose: true,
+                    shade: 0.8,
+                    area: ['50%', '75%'],
+                    content: '/admin/Book/edit?id='+id
+                });
+            }
+        });
+        //监听表单提交
+        form.on('submit(submit)', function (data) {
+            $.post("{:url('admin/Book/addPost')}",{data:data.field},function(res){
+                if(res.code==0){
+                    layer.msg(res.msg, {time: 2000, icon:5});
+                }else{
+                    layer.msg(res.msg, {time: 1500, icon:6});
+                    setTimeout(function () {
+                        window.location.href = "{:url('admin/Book/index')}";
+                    },1500)
+                }
+            },"json");
+        });
+
+        //任务名搜索
+        $("#search").click(function () {
+            //获取搜索的关键字
+            var keyword = $("#keyword").val();
+            if(keyword==''){return false;}
+            var url = "/admin/Book/getList?keyword="+keyword;
+            table.reload('table', {
+                url: url
+                ,where: {}
+            });
+        });
+        //重置搜索
+        $("#reset").click(function () {
+            $("#keyword").val('');
+            //表格重载
+            table.reload('table', {
+                url: "/admin/Book/getList?keyword="
+                ,where: {}
+            });
+        });
+    });
+</script>
+</body>
+</html>

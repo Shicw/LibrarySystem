@@ -1,0 +1,108 @@
+{include file="public/head" /}
+</head>
+<body class="layui-layout-body">
+<div class="layui-tab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">图书类别列表</li>
+        <li>添加图书类别</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <table id="table" lay-filter="table"></table>
+            <script type="text/html" id="operation">
+                <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+            </script>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-md4">
+                    <form class="layui-form" action="">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*类别名称</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="name" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">备注</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="description" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="text-align: center">
+                            <a class="layui-btn" lay-submit="" lay-filter="submit">提交</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use('element', function(){});
+    //表格加载
+    layui.use('table', function(){
+        var table = layui.table,layer = layui.layer;
+        table.render({
+            elem: '#table'
+            ,height: 450
+            ,url: '/admin/book_type/getList'
+            ,page: true
+            ,cols: [[
+                {field: 'id', title: 'ID', width:80, sort: true, fixed: 'left'}
+                ,{field: 'name', title: '类别名称'}
+                ,{field: 'description', title: '备注', sort: true}
+                ,{fixed: 'right', title:'操作', toolbar: '#operation', width:150}
+            ]]
+        });
+        //操作按钮监听
+        table.on('tool(table)', function(obj){
+            var data = obj.data;
+            var id = data.id;//操作的记录id
+            //console.log(obj);
+            if(obj.event === 'del'){
+                layer.confirm('确认要删除吗?', function(index){
+                    obj.del();//前端删除
+                    $.post("{:url('admin/book_type/delete')}",{id:id},function(res){
+                        if(res.code==0){
+                            layer.msg(res.msg, {time: 2000, icon:5});
+                        }else{
+                            layer.msg(res.msg, {time: 1500, icon:6});
+                        }
+                    },"json");
+                });
+            } else if(obj.event === 'edit'){
+                layer.open({
+                    type: 2,
+                    title: '修改图书类别',
+                    shadeClose: true,
+                    shade: 0.8,
+                    area: ['30%', '35%'],
+                    content: '/admin/book_type/edit?id='+id
+                });
+            }
+        });
+    });
+    //表单提交
+    layui.use('form', function () {
+        var form = layui.form,layer = layui.layer;
+        //表单提交
+        form.on('submit(submit)', function (data) {
+            $.post("{:url('admin/book_type/addPost')}",{data:data.field},function(res){
+                if(res.code==0){
+                    layer.msg(res.msg, {time: 2000, icon:5});
+                }else{
+                    layer.msg(res.msg, {time: 1500, icon:6});
+                    setTimeout(function () {
+                        window.location.href = "{:url('admin/book_type/index')}";
+                    },1500)
+                }
+            },"json");
+        });
+    });
+</script>
+</body>
+</html>

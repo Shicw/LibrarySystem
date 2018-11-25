@@ -1,0 +1,246 @@
+{include file="public/head" /}
+</head>
+<body class="layui-layout-body">
+<div class="layui-tab">
+    <ul class="layui-tab-title">
+        <li class="layui-this">用户列表</li>
+        <li>添加用户</li>
+    </ul>
+    <div class="layui-tab-content">
+        <div class="layui-tab-item layui-show">
+            <div class="layui-inline">
+                <input type="text" placeholder="按姓名,编号,手机,专业班级" class="layui-input" id="keyword">
+            </div>
+            <button class="layui-btn" id="search">搜索</button>
+            <button class="layui-btn layui-btn-danger" id="reset">重置</button>
+
+            <table id="table" lay-filter="table"></table>
+            <script type="text/html" id="operation">
+                <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+                <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+                {{#  if(d.status == 1){ }}
+                <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="ban">禁用</a>
+                {{#  } }}
+                {{#  if(d.status == 0){ }}
+                <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="cancelBan">启用</a>
+                {{#  } }}
+            </script>
+        </div>
+        <div class="layui-tab-item">
+            <div class="layui-row">
+                <div class="layui-col-md6">
+                    <form class="layui-form" action="">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*用户编号</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="id" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*姓名</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="name" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*性别</label>
+                            <div class="layui-input-block">
+                                <input type="radio" name="sex" value="1" title="男&nbsp;&nbsp;&nbsp;&nbsp;">
+                                <input type="radio" name="sex" value="2" title="女">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*类型</label>
+                            <div class="layui-input-block">
+                                <input type="radio" name="type" value="1" title="学生">
+                                <input type="radio" name="type" value="2" title="教师">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*手机</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="mobile" lay-verify="required" autocomplete="off"
+                                       class="layui-input">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label">*专业班级</label>
+                            <div class="layui-input-inline">
+                                <select name="major_id" id="major_id" lay-verify="required" lay-search="" lay-filter="major_id">
+                                    <option value="">请选择或搜索专业</option>
+                                    {volist name="majorList" id="vo"}
+                                       <option value="{$vo.id}">{$vo.name}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                            <div class="layui-input-inline">
+                                <select name="class_id" id="class_id">
+                                    <option value="" hidden>请选班级</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="layui-form-item" style="text-align: center">
+                            <a class="layui-btn" lay-submit="" lay-filter="submit">提交</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    layui.use(['element','table','form'], function(){
+        var table = layui.table,layer = layui.layer;
+        var form = layui.form;
+        //表格加载
+        table.render({
+            elem: '#table'
+            ,height: 450
+            ,url: '/admin/User/getList'
+            ,page: true
+            ,cols: [[
+                {field: 'id', title: '用户编号', sort: true, fixed: 'left', width:110}
+                ,{field: 'name', title: '用户姓名', width:90}
+                ,{field: 'username', title: '用户名', width:110}
+                ,{field: 'sex', title: '性别', width:60, templet: function(d){
+                    return d.sex==0 ? '未设置' : (d.sex==1 ? '男': 'nv');
+                }}
+                ,{field: 'type', title: '类型', width:60, templet: function(d){
+                    return d.type==0 ? 'admin' : (d.type==1 ? '学生': '教师');
+                }}
+                ,{field: 'mobile', title: '手机', width:120}
+                ,{field: 'major', title: '专业', width:100}
+                ,{field: 'class', title: '班级', width:60}
+                ,{field: 'status', title: '状态', width:60, templet: function(d){
+                    return d.status==0 ? '禁用' : '启用';
+                }}
+                ,{field: 'last_borrow_time', title: '最后借阅时间', width:170}
+                ,{field: 'last_login_time', title: '最后登录时间', width:170}
+                ,{field: 'create_time', title: '创建时间', width:170}
+                ,{fixed: 'right', title:'操作', toolbar: '#operation', width:210}
+            ]]
+        });
+        //监听表格操作按钮
+        table.on('tool(table)', function(obj){
+            var data = obj.data;
+            var id = data.id;//操作的记录id
+            switch (obj.event){
+                case 'del':
+                    layer.confirm('确认要删除吗?', function (index) {
+                        $.post("{:url('admin/User/delete')}", {id: id}, function (res) {
+                            if (res.code == 0) {
+                                layer.msg(res.msg, {time: 2000, icon: 5});
+                            } else {
+                                obj.del();//前端删除
+                                layer.msg(res.msg, {time: 1500, icon: 6});
+                            }
+                        }, "json");
+                    });
+                    break;
+                case 'edit':
+                    layer.open({
+                        type: 2,
+                        title: '修改用户',
+                        shadeClose: true,
+                        shade: 0.8,
+                        area: ['50%', '75%'],
+                        content: '/admin/User/edit?id=' + id
+                    });
+                    break;
+                case 'ban':
+                    layer.confirm('确认要禁用吗?', function (index) {
+                        if(data.status==0){
+                            layer.msg('该用户已是禁用状态', {time: 2000, icon: 5});
+                            return false;
+                        }
+                        $.post("{:url('admin/User/ban')}", {id: id}, function (res) {
+                            if (res.code == 0) {
+                                layer.msg(res.msg, {time: 2000, icon: 5});
+                            } else {
+                                table.reload('table', {
+                                    url: "/admin/User/getList"
+                                    ,where: {}
+                                });
+                                layer.msg(res.msg, {time: 1500, icon: 6});
+                            }
+                        }, "json");
+                    });
+                    break;
+                case 'cancelBan':
+                    layer.confirm('确认要启用吗?', function (index) {
+                        if(data.status==1){
+                            layer.msg('该用户已是启用状态', {time: 2000, icon: 5});
+                            return false;
+                        }
+                        $.post("{:url('admin/User/cancelBan')}", {id: id}, function (res) {
+                            if (res.code == 0) {
+                                layer.msg(res.msg, {time: 2000, icon: 5});
+                            } else {
+                                table.reload('table', {
+                                    url: "/admin/User/getList"
+                                    ,where: {}
+                                });
+                                layer.msg(res.msg, {time: 1500, icon: 6});
+                            }
+                        }, "json");
+                    });
+                    break;
+
+            }
+        });
+        //监听表单提交
+        form.on('submit(submit)', function (data) {
+            $.post("{:url('admin/User/addPost')}",{data:data.field},function(res){
+                if(res.code==0){
+                    layer.msg(res.msg, {time: 2000, icon:5});
+                }else{
+                    layer.msg(res.msg, {time: 1500, icon:6});
+                    setTimeout(function () {
+                        window.location.href = "{:url('admin/User/index')}";
+                    },1500)
+                }
+            },"json");
+        });
+        //监听专业选择框
+        form.on('select(major_id)', function (data) {
+            $("#class_id option:not(:first)").remove();
+            form.render();
+            var majorId = data.value;
+            $.post("{:url('admin/Classes/loadClass')}",{majorId:majorId},function(res){
+                if(res.code==1){
+                    var classSelect = $("#class_id");
+                    for(var key in res.data){
+                        var value = res.data[key];
+                        classSelect.append('<option value="' + value.id + '">' + value.name + '</option>');
+                    }
+                    form.render();//刷新表单,使select更新生效
+                }
+            });
+        });
+
+        //任务名搜索
+        $("#search").click(function () {
+            //获取搜索的关键字
+            var keyword = $("#keyword").val();
+            if(keyword==''){return false;}
+            var url = "/admin/User/getList?keyword="+keyword;
+            table.reload('table', {
+                url: url
+                ,where: {}
+            });
+        });
+        //重置搜索
+        $("#reset").click(function () {
+            $("#keyword").val('');
+            //表格重载
+            table.reload('table', {
+                url: "/admin/User/getList?keyword="
+                ,where: {}
+            });
+        });
+    });
+</script>
+</body>
+</html>

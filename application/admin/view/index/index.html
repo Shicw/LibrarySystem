@@ -1,0 +1,84 @@
+{include file="public/head" /}
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo"><a href="/admin/Index/index" style="color: #009688">图书管理系统</a></div>
+        <!-- 头部按钮 -->
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">{$username}</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;" onclick="openapp('/admin/Index/changePassword')">修改密码</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item">
+                <a href="javascript:;" id="loginOut">注销</a>
+            </li>
+        </ul>
+    </div>
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域 -->
+            <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+                <li class="layui-nav-item"><a href="javascript:;" onclick="openapp('/admin/Index/center')">首页</a></li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;">图书管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" onclick="openapp('/admin/book_type/index')">图书类别管理</a></dd>
+                        <dd><a href="javascript:;" onclick="openapp('/admin/Book/index')">图书管理</a></dd>
+                        <dd><a href="javascript:;" onclick="openapp('/admin/book_borrow/index')">图书借阅管理</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item">
+                    <a href="javascript:;">基础信息管理</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;" onclick="openapp('/admin/Major/index')">专业管理</a></dd>
+                        <dd><a href="javascript:;" onclick="openapp('/admin/Classes/index')">班级管理</a></dd>
+                    </dl>
+                </li>
+                <li class="layui-nav-item"><a href="javascript:;" onclick="openapp('/admin/User/index')">用户管理</a></li>
+                <li class="layui-nav-item"><a href="javascript:;" onclick="openapp('/admin/Log/index')">系统日志</a></li>
+                <li class="layui-nav-item"><a href="javascript:;" onclick="openapp('/admin/Index/changePassword')">修改密码</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <iframe src="{:url('admin/Index/center')}" style="width:100%;height: 100%" frameborder="0"
+                class="appiframe"></iframe>
+    </div>
+</div>
+<script>
+    layui.use('element', function(){
+        var element = layui.element;
+    });
+    $(function(){
+        //注销按钮监听点击事件
+        $("#loginOut").on("click",function(){
+            $.ajax({
+                url:"{:url('admin/Login/loginOut')}",
+                type:"get",
+                success:function (res) {
+                    console.log(res);
+                    if(res.code==1){
+                        layui.use('layer', function(){
+                            var layer = layui.layer;
+                            layer.msg('注销成功',{time: 1000});
+                            setTimeout(function () {
+                                window.location.href = '/admin/Login/index';
+                            },1000);
+                        });
+                    }
+                }
+            });
+        });
+
+    });
+    //切换iframe
+    function openapp(url) {
+        $("iframe").attr("src",url);
+    }
+</script>
+</body>
+</html>
